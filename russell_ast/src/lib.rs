@@ -1,14 +1,11 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub enum ASTNode {
+    Variable(char),
+    Literal(bool),
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    Not(Box<ASTNode>),
+    And(Box<ASTNode>, Box<ASTNode>),
+    Or(Box<ASTNode>, Box<ASTNode>),
+    Implies(Box<ASTNode>, Box<ASTNode>),
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+    Paren(Box<ASTNode>),
 }
