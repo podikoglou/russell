@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum ASTNode {
     Variable(char),
     Literal(bool),
