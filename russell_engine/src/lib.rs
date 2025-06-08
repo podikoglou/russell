@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use anyhow::anyhow;
 use russell_ast::ASTNode;
@@ -39,7 +39,7 @@ impl Engine {
     }
 
     pub fn collect_variables(&self, expr: &ASTNode) -> Vec<char> {
-        match expr {
+        let vars = match expr {
             ASTNode::Variable(symbol) => vec![*symbol],
 
             ASTNode::Literal(_) => vec![],
@@ -59,8 +59,17 @@ impl Engine {
             }
 
             ASTNode::Paren(node) => self.collect_variables(node),
-        }
+        };
+
+        // NOTE: this is one of the worst things I've ever written
+        vars.iter()
+            .map(|x| *x)
+            .collect::<HashSet<char>>()
+            .iter()
+            .map(|x| *x)
+            .collect::<Vec<char>>()
     }
+
 #[cfg(test)]
 mod tests {
     use super::*;
