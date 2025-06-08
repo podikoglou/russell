@@ -57,19 +57,30 @@ fn expr_parser<'a>() -> impl Parser<'a, &'a str, ASTNode, extra::Err<Rich<'a, ch
                 |left, right| ASTNode::Or(Box::new(left), Box::new(right))
             );
 
-        // Implies operator (right associative, lowest precedence)
+        // Implies operator (right associative)
         let implies_expr = or_expr
             .clone()
-            .then(just("=>").padded().ignore_then(expr.clone()).or_not())
-            .map(|(left, right)| {
-                if let Some(right) = right {
-                    ASTNode::Implies(Box::new(left), Box::new(right))
-                } else {
-                    left
+            .separated_by(just("=>").padded())
+            .at_least(1)
+            .collect::<Vec<_>>()
+            .map(|mut exprs| {
+                // Right-fold manually for right associativity
+                let mut result = exprs.pop().unwrap();
+                while let Some(left) = exprs.pop() {
+                    result = ASTNode::Implies(Box::new(left), Box::new(result));
                 }
+                result
             });
 
-        implies_expr
+        // Equivalent operator (left associative, lowest precedence)
+        let equiv_expr = implies_expr
+            .clone()
+            .foldl(
+                just("==").padded().ignore_then(implies_expr).repeated(),
+                |left, right| ASTNode::Equivalent(Box::new(left), Box::new(right))
+            );
+
+        equiv_expr
     })
     .then_ignore(end())
     .padded()
