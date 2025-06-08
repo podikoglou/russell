@@ -146,6 +146,11 @@ version = "0.1.0"
 [[package]]
 name = "russell_engine"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "russell_ast",
+ "russell_parser",
+]
 
 [[package]]
 name = "russell_parser"
