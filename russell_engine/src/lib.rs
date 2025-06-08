@@ -37,4 +37,45 @@ impl Engine {
             ASTNode::Paren(inner) => self.eval(*inner, assignments),
         }
     }
+
+    pub fn collect_variables(&self, expr: &ASTNode) -> Vec<char> {
+        match expr {
+            ASTNode::Variable(symbol) => vec![*symbol],
+
+            ASTNode::Literal(_) => vec![],
+
+            ASTNode::Not(node) => self.collect_variables(node),
+
+            ASTNode::And(p, q) => [self.collect_variables(p), self.collect_variables(q)].concat(),
+
+            ASTNode::Or(p, q) => [self.collect_variables(p), self.collect_variables(q)].concat(),
+
+            ASTNode::Implies(p, q) => {
+                [self.collect_variables(p), self.collect_variables(q)].concat()
+            }
+
+            ASTNode::Equivalent(p, q) => {
+                [self.collect_variables(p), self.collect_variables(q)].concat()
+            }
+
+            ASTNode::Paren(node) => self.collect_variables(node),
+        }
+    }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_collect_variables() {
+        let engine = Engine::default();
+
+        assert_eq!(
+            engine.collect_variables(
+                &engine
+                    .parse("(a) && (b && c || ((((((d) || e)))))) => f == g".to_string())
+                    .unwrap()
+            ),
+            vec!['a', 'b', 'c', 'd', 'e', 'f', 'g']
+        );
+    }
 }
