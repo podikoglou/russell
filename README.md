@@ -15,14 +15,14 @@ A few things:
 This is what De Morgan's laws look like encoded in russell's syntax:
 
 ```js
-!(p && q) == (!p || !q)
+!(p && q) == !p || !q
 ```
 
 ```js
-!(p || q) == (!p && !q)
+!(p || q) == !p && !q
 ```
 
-When we run `echo '!(p && q) == (!p || !q)' | cargo r`, we get:
+When we run `echo '!(p && q) == !p || !q' | cargo r`, we get:
 ```language
 [russell/src/main.rs:52:9] engine.check_tautology(expr)? = true
 ```
