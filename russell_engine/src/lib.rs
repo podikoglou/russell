@@ -1,14 +1,15 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+use russell_ast::ASTNode;
+use russell_parser::parse;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Default, Debug)]
+pub struct Engine {}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+impl Engine {
+    pub fn eval_str(&self, input: String) -> anyhow::Result<bool> {
+        Ok(self.eval(parse(input)?))
+    }
+
+    pub fn eval(&self, expr: ASTNode) -> bool {
+        true
     }
 }
