@@ -23,7 +23,7 @@ impl Engine {
             ASTNode::Literal(value) => Ok(value),
             ASTNode::Not(node) => Ok(!self.eval(*node, assignments)?),
             ASTNode::And(p, q) => Ok(self.eval(*p, assignments)? && self.eval(*q, assignments)?),
-            ASTNode::Or(p, q) => Ok(self.eval(*p, assignments)? && self.eval(*q, assignments)?),
+            ASTNode::Or(p, q) => Ok(self.eval(*p, assignments)? || self.eval(*q, assignments)?),
             ASTNode::Implies(p, q) => {
                 Ok(!self.eval(*p, assignments)? || self.eval(*q, assignments)?)
             }
