@@ -1,5 +1,5 @@
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env::args,
     io::{self, Read},
 };
@@ -44,7 +44,28 @@ fn main() -> anyhow::Result<()> {
     // eval
     let engine = Engine::default();
 
-    println!("{}", engine.eval_str(buf, &assignments)?);
+    let expr = engine.parse(buf)?;
+    let variables = engine.collect_variables(&expr);
+
+    // if we simply don't have enough assignments as we have variables
+    if assignments.len() != variables.len() {
+        let unassigned_vars = variables
+            .iter()
+            .filter(|symbol| !assignments.contains_key(*symbol))
+            .collect::<HashSet<_>>()
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        bail!(
+            "not enough assignments! ({} are unassigned)",
+            unassigned_vars
+        );
+    }
+
+    // we have enough assignments, and we can simply evaluate the expression
+    println!("{}", engine.eval(expr, &assignments)?);
 
     Ok(())
 }
