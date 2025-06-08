@@ -47,6 +47,13 @@ fn main() -> anyhow::Result<()> {
     let expr = engine.parse(buf)?;
     let variables = engine.collect_variables(&expr);
 
+    // check if contradiction / tautology
+    if assignments.len() == 0 {
+        dbg!(engine.check_tautology(expr)?);
+
+        return Ok(());
+    }
+
     // if we simply don't have enough assignments as we have variables
     if assignments.len() != variables.len() {
         let unassigned_vars = variables
