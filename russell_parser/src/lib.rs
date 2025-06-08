@@ -70,10 +70,10 @@ mod tests {
             parse("x && (y && z)".to_string()).unwrap(),
             ASTNode::And(
                 Box::new(ASTNode::Variable('x')),
-                Box::new(ASTNode::And(
+                Box::new(ASTNode::Paren(Box::new(ASTNode::And(
                     Box::new(ASTNode::Variable('y')),
                     Box::new(ASTNode::Variable('z'))
-                ))
+                ))))
             )
         );
     }
@@ -92,10 +92,10 @@ mod tests {
             parse("x || (y || z)".to_string()).unwrap(),
             ASTNode::Or(
                 Box::new(ASTNode::Variable('x')),
-                Box::new(ASTNode::Or(
+                Box::new(ASTNode::Paren(Box::new(ASTNode::Or(
                     Box::new(ASTNode::Variable('y')),
                     Box::new(ASTNode::Variable('z'))
-                ))
+                ))))
             )
         );
     }
@@ -114,9 +114,13 @@ mod tests {
             parse("x => (y => z)".to_string()).unwrap(),
             ASTNode::Implies(
                 Box::new(ASTNode::Variable('x')),
-                Box::new(ASTNode::Implies(
+                Box::new(ASTNode::Paren(Box::new(ASTNode::Implies(
                     Box::new(ASTNode::Variable('y')),
                     Box::new(ASTNode::Variable('z'))
+                ))))
+            )
+        );
+    }
                 ))
             )
         );
