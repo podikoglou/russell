@@ -70,6 +70,50 @@ impl Engine {
             .collect::<Vec<char>>()
     }
 
+    pub fn compute_assignments(&self, variables: Vec<char>) -> Vec<Assignments> {
+        // this is how many rows our truth table of sorts will have
+        let rows = usize::pow(2, variables.len() as u32);
+
+        (0..=rows)
+            .map(|i| {
+                // 'i' is a number which if we perform certain bitwise
+                // operations on, will give us the truth values for each
+                // variable
+                let mut assignments = Assignments::default();
+
+                let mut pos = 0;
+
+                for var in &variables {
+                    // we extract the bit on the nth position (where n is the
+                    // position we're currently in, and turn it into a boolean
+                    // by checking if it's 1
+                    let value = (i >> pos) & 1 == 1;
+
+                    assignments.insert(*var, value);
+
+                    pos += 1
+                }
+
+                assignments
+            })
+            .collect::<Vec<Assignments>>()
+    }
+
+    pub fn check_tautology(&self, expr: ASTNode) -> anyhow::Result<bool> {
+        let variables: Vec<char> = self.collect_variables(&expr);
+        let assignments = self.compute_assignments(variables);
+
+        for assignments in assignments {
+            // NOTE: cloning -- bad
+            if !self.eval(expr.clone(), &assignments)? {
+                return Ok(false);
+            }
+        }
+
+        Ok(true)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
