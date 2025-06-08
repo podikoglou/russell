@@ -10,8 +10,12 @@ type Assignments = HashMap<char, bool>;
 pub struct Engine {}
 
 impl Engine {
+    pub fn parse(&self, input: String) -> anyhow::Result<ASTNode> {
+        parse(input)
+    }
+
     pub fn eval_str(&self, input: String, assignments: &Assignments) -> anyhow::Result<bool> {
-        self.eval(parse(input)?, assignments)
+        self.eval(self.parse(input)?, assignments)
     }
 
     pub fn eval(&self, expr: ASTNode, assignments: &Assignments) -> anyhow::Result<bool> {
