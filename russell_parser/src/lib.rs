@@ -1,8 +1,78 @@
 use russell_ast::ASTNode;
+use chumsky::prelude::*;
 
 /// Parses an input into an [ASTNode]
 pub fn parse(input: String) -> anyhow::Result<ASTNode> {
-    todo!()
+    let parser = expr_parser();
+    match parser.parse(input.trim()).into_result() {
+        Ok(ast) => Ok(ast),
+        Err(errors) => {
+            let error_msg = errors
+                .iter()
+                .map(|e| format!("{:?}", e))
+                .collect::<Vec<_>>()
+                .join(", ");
+            Err(anyhow::anyhow!("Parse error: {}", error_msg))
+        }
+    }
+}
+
+fn expr_parser<'a>() -> impl Parser<'a, &'a str, ASTNode, extra::Err<Rich<'a, char>>> {
+    recursive(|expr| {
+        // Variables: single lowercase letters
+        let variable = one_of('a'..='z').map(ASTNode::Variable);
+
+        // Literals: true and false
+        let literal = just("true")
+            .to(ASTNode::Literal(true))
+            .or(just("false").to(ASTNode::Literal(false)));
+
+        // Parenthesized expressions
+        let parenthesized = expr
+            .clone()
+            .delimited_by(just('('), just(')'))
+            .map(|inner| ASTNode::Paren(Box::new(inner)));
+
+        // Atoms: literals, variables, or parenthesized expressions (order matters!)
+        let atom = choice((literal, variable, parenthesized)).padded();
+
+        // Not operator (highest precedence, prefix)
+        let not_expr = just('!')
+            .repeated()
+            .foldr(atom, |_op, expr| ASTNode::Not(Box::new(expr)));
+
+        // And operator (left associative)
+        let and_expr = not_expr
+            .clone()
+            .foldl(
+                just("&&").padded().ignore_then(not_expr).repeated(),
+                |left, right| ASTNode::And(Box::new(left), Box::new(right))
+            );
+
+        // Or operator (left associative)
+        let or_expr = and_expr
+            .clone()
+            .foldl(
+                just("||").padded().ignore_then(and_expr).repeated(),
+                |left, right| ASTNode::Or(Box::new(left), Box::new(right))
+            );
+
+        // Implies operator (right associative, lowest precedence)
+        let implies_expr = or_expr
+            .clone()
+            .then(just("=>").padded().ignore_then(expr.clone()).or_not())
+            .map(|(left, right)| {
+                if let Some(right) = right {
+                    ASTNode::Implies(Box::new(left), Box::new(right))
+                } else {
+                    left
+                }
+            });
+
+        implies_expr
+    })
+    .then_ignore(end())
+    .padded()
 }
 
 #[cfg(test)]

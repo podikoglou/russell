@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.98"
+chumsky = "0.10.1"
 russell_ast = { path = "../russell_ast" }
