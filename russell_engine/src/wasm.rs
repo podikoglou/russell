@@ -76,8 +76,8 @@ impl WasmEngine {
 
         let variables = self.inner.collect_variables(&expr);
 
-        // create truth table
-        let mut table: HashMap<Assignments, bool> = HashMap::new();
+        // create truth table as array of objects
+        let mut table: Vec<HashMap<String, bool>> = Vec::new();
 
         let rows = self.inner.compute_assignments(variables);
 
@@ -88,11 +88,20 @@ impl WasmEngine {
                 .eval(&expr, &assignments)
                 .map_err(|e| format!("{:?}", e))?;
 
-            // insert result to truth table
-            table.insert(assignments, result);
+            // create row object
+            let mut row = HashMap::new();
+
+            // add variable assignments
+            for (var, value) in &assignments.0 {
+                row.insert(var.to_string(), *value);
+            }
+
+            // add result
+            row.insert("result".to_string(), result);
+
+            table.push(row);
         }
 
-        serde_wasm_bindgen::to_value::<HashMap<Assignments, bool>>(&table)
-            .map_err(|e| format!("{:?}", e))
+        serde_wasm_bindgen::to_value(&table).map_err(|e| format!("{:?}", e))
     }
 }
