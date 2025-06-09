@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{Assignments, Engine};
+use russell_ast::ASTNode;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
@@ -29,6 +30,12 @@ impl WasmEngine {
         }
     }
 
+    fn parse(&mut self, input: &str) -> Result<ASTNode, String> {
+        self.inner
+            .parse(input.to_string())
+            .map_err(|e| format!("{:?}", e))
+    }
+
     #[wasm_bindgen]
     pub fn eval(&mut self, input: &str, assignments: JsValue) -> Result<bool, String> {
         let assignments_map =
@@ -46,48 +53,36 @@ impl WasmEngine {
 
     #[wasm_bindgen]
     pub fn check_tautology(&mut self, input: &str) -> Result<bool, String> {
-        let parsed = self
-            .inner
-            .parse(input.to_string())
-            .map_err(|e| format!("{:?}", e))?;
+        let expr = self.parse(input)?;
 
         self.inner
-            .check_tautology(parsed)
+            .check_tautology(expr)
             .map_err(|e| format!("{:?}", e))
     }
 
     #[wasm_bindgen]
     pub fn check_contradiction(&mut self, input: &str) -> Result<bool, String> {
-        let parsed = self
-            .inner
-            .parse(input.to_string())
-            .map_err(|e| format!("{:?}", e))?;
+        let expr = self.parse(input)?;
 
         self.inner
-            .check_contradiction(parsed)
+            .check_contradiction(expr)
             .map_err(|e| format!("{:?}", e))
     }
 
     #[wasm_bindgen]
     pub fn check_contingency(&mut self, input: &str) -> Result<bool, String> {
-        let parsed = self
-            .inner
-            .parse(input.to_string())
-            .map_err(|e| format!("{:?}", e))?;
+        let expr = self.parse(input)?;
 
         self.inner
-            .check_contingency(parsed)
+            .check_contingency(expr)
             .map_err(|e| format!("{:?}", e))
     }
 
     #[wasm_bindgen]
     pub fn compute_truth_table(&mut self, input: &str) -> Result<TruthTable, String> {
-        let parsed = self
-            .inner
-            .parse(input.to_string())
-            .map_err(|e| format!("{:?}", e))?;
+        let expr = self.parse(input)?;
 
-        let variables = self.inner.collect_variables(&parsed);
+        let variables = self.inner.collect_variables(&expr);
 
         // create truth table
         let mut table: HashMap<Assignments, bool> = HashMap::new();
@@ -98,7 +93,7 @@ impl WasmEngine {
             // evaluate row
             let result = self
                 .inner
-                .eval(parsed.clone(), &assignments)
+                .eval(expr.clone(), &assignments)
                 .map_err(|e| format!("{:?}", e))?;
 
             // insert result to truth table
