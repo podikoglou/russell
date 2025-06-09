@@ -177,33 +177,6 @@ function takeFromExternrefTable0(idx) {
     return value;
 }
 
-const TruthTableFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
-    : new FinalizationRegistry(ptr => wasm.__wbg_truthtable_free(ptr >>> 0, 1));
-
-export class TruthTable {
-
-    static __wrap(ptr) {
-        ptr = ptr >>> 0;
-        const obj = Object.create(TruthTable.prototype);
-        obj.__wbg_ptr = ptr;
-        TruthTableFinalization.register(obj, obj.__wbg_ptr, obj);
-        return obj;
-    }
-
-    __destroy_into_raw() {
-        const ptr = this.__wbg_ptr;
-        this.__wbg_ptr = 0;
-        TruthTableFinalization.unregister(this);
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_truthtable_free(ptr, 0);
-    }
-}
-
 const WasmEngineFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_wasmengine_free(ptr >>> 0, 1));
@@ -282,7 +255,7 @@ export class WasmEngine {
     }
     /**
      * @param {string} input
-     * @returns {TruthTable}
+     * @returns {any}
      */
     compute_truth_table(input) {
         const ptr0 = passStringToWasm0(input, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -291,7 +264,7 @@ export class WasmEngine {
         if (ret[2]) {
             throw takeFromExternrefTable0(ret[1]);
         }
-        return TruthTable.__wrap(ret[0]);
+        return takeFromExternrefTable0(ret[0]);
     }
 }
 
@@ -356,6 +329,10 @@ function __wbg_get_imports() {
             wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
         }
     };
+    imports.wbg.__wbg_fromCodePoint_f37c25c172f2e8b5 = function() { return handleError(function (arg0) {
+        const ret = String.fromCodePoint(arg0 >>> 0);
+        return ret;
+    }, arguments) };
     imports.wbg.__wbg_get_67b2ba62fc30de12 = function() { return handleError(function (arg0, arg1) {
         const ret = Reflect.get(arg0, arg1);
         return ret;
@@ -396,6 +373,14 @@ function __wbg_get_imports() {
         const ret = arg0.length;
         return ret;
     };
+    imports.wbg.__wbg_new_405e22f390576ce2 = function() {
+        const ret = new Object();
+        return ret;
+    };
+    imports.wbg.__wbg_new_5e0be73521bc8c17 = function() {
+        const ret = new Map();
+        return ret;
+    };
     imports.wbg.__wbg_new_8a6f238a6ece86ea = function() {
         const ret = new Error();
         return ret;
@@ -412,8 +397,15 @@ function __wbg_get_imports() {
         const ret = arg0.next();
         return ret;
     }, arguments) };
+    imports.wbg.__wbg_set_3f1d0b984ed272ed = function(arg0, arg1, arg2) {
+        arg0[arg1] = arg2;
+    };
     imports.wbg.__wbg_set_65595bdd868b3009 = function(arg0, arg1, arg2) {
         arg0.set(arg1, arg2 >>> 0);
+    };
+    imports.wbg.__wbg_set_8fc6bf8a5b1071d1 = function(arg0, arg1, arg2) {
+        const ret = arg0.set(arg1, arg2);
+        return ret;
     };
     imports.wbg.__wbg_stack_0ed75d68575b0f3c = function(arg0, arg1) {
         const ret = arg1.stack;
@@ -459,6 +451,10 @@ function __wbg_get_imports() {
     imports.wbg.__wbindgen_is_object = function(arg0) {
         const val = arg0;
         const ret = typeof(val) === 'object' && val !== null;
+        return ret;
+    };
+    imports.wbg.__wbindgen_is_string = function(arg0) {
+        const ret = typeof(arg0) === 'string';
         return ret;
     };
     imports.wbg.__wbindgen_jsval_loose_eq = function(arg0, arg1) {
