@@ -7,7 +7,7 @@ use anyhow::anyhow;
 use russell_ast::ASTNode;
 use russell_parser::parse;
 
-#[derive(Default, PartialEq, Eq)]
+#[derive(Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Assignments(HashMap<char, bool>);
 
 impl std::hash::Hash for Assignments {
@@ -290,5 +290,6 @@ mod tests {
 #[cfg(target_arch = "wasm32")]
 pub mod wasm;
 
+use serde::{Deserialize, Serialize};
 #[cfg(target_arch = "wasm32")]
 pub use wasm::*;

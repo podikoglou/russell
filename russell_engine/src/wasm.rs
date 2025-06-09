@@ -16,12 +16,6 @@ pub struct WasmEngine {
 }
 
 #[wasm_bindgen]
-#[derive(Default)]
-pub struct TruthTable {
-    table: HashMap<Assignments, bool>,
-}
-
-#[wasm_bindgen]
 impl WasmEngine {
     #[wasm_bindgen(constructor)]
     pub fn new() -> WasmEngine {
@@ -77,7 +71,7 @@ impl WasmEngine {
     }
 
     #[wasm_bindgen]
-    pub fn compute_truth_table(&mut self, input: &str) -> Result<TruthTable, String> {
+    pub fn compute_truth_table(&mut self, input: &str) -> Result<JsValue, String> {
         let expr = self.parse(input)?;
 
         let variables = self.inner.collect_variables(&expr);
@@ -98,6 +92,7 @@ impl WasmEngine {
             table.insert(assignments, result);
         }
 
-        Ok(TruthTable { table })
+        serde_wasm_bindgen::to_value::<HashMap<Assignments, bool>>(&table)
+            .map_err(|e| format!("{:?}", e))
     }
 }
