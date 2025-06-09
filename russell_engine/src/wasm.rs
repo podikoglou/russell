@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::Engine;
+use anyhow::Context;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
@@ -35,6 +36,18 @@ impl WasmEngine {
 
         self.inner
             .eval_str(input.to_string(), &assignments_map)
+            .map_err(|e| format!("{:?}", e))
+    }
+
+    #[wasm_bindgen]
+    pub fn check_tautology(&mut self, input: &str) -> Result<bool, String> {
+        let parsed = self
+            .inner
+            .parse(input.to_string())
+            .map_err(|e| format!("{:?}", e))?;
+
+        self.inner
+            .check_tautology(parsed)
             .map_err(|e| format!("{:?}", e))
     }
 }
