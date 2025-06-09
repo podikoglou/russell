@@ -74,7 +74,7 @@ impl Engine {
         // this is how many rows our truth table of sorts will have
         let rows = usize::pow(2, variables.len() as u32);
 
-        (0..=rows)
+        (0..rows)
             .map(|i| {
                 // 'i' is a number which if we perform certain bitwise
                 // operations on, will give us the truth values for each
