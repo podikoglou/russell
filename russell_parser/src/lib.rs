@@ -1,5 +1,5 @@
-use russell_ast::ASTNode;
 use chumsky::prelude::*;
+use russell_ast::ASTNode;
 
 /// Parses an input into an [ASTNode]
 pub fn parse(input: String) -> anyhow::Result<ASTNode> {
@@ -42,20 +42,16 @@ fn expr_parser<'a>() -> impl Parser<'a, &'a str, ASTNode, extra::Err<Rich<'a, ch
             .foldr(atom, |_op, expr| ASTNode::Not(Box::new(expr)));
 
         // And operator (left associative)
-        let and_expr = not_expr
-            .clone()
-            .foldl(
-                just("&&").padded().ignore_then(not_expr).repeated(),
-                |left, right| ASTNode::And(Box::new(left), Box::new(right))
-            );
+        let and_expr = not_expr.clone().foldl(
+            just("&&").padded().ignore_then(not_expr).repeated(),
+            |left, right| ASTNode::And(Box::new(left), Box::new(right)),
+        );
 
         // Or operator (left associative)
-        let or_expr = and_expr
-            .clone()
-            .foldl(
-                just("||").padded().ignore_then(and_expr).repeated(),
-                |left, right| ASTNode::Or(Box::new(left), Box::new(right))
-            );
+        let or_expr = and_expr.clone().foldl(
+            just("||").padded().ignore_then(and_expr).repeated(),
+            |left, right| ASTNode::Or(Box::new(left), Box::new(right)),
+        );
 
         // Implies operator (right associative)
         let implies_expr = or_expr
@@ -73,12 +69,10 @@ fn expr_parser<'a>() -> impl Parser<'a, &'a str, ASTNode, extra::Err<Rich<'a, ch
             });
 
         // Equivalent operator (left associative, lowest precedence)
-        let equiv_expr = implies_expr
-            .clone()
-            .foldl(
-                just("==").padded().ignore_then(implies_expr).repeated(),
-                |left, right| ASTNode::Equivalent(Box::new(left), Box::new(right))
-            );
+        let equiv_expr = implies_expr.clone().foldl(
+            just("==").padded().ignore_then(implies_expr).repeated(),
+            |left, right| ASTNode::Equivalent(Box::new(left), Box::new(right)),
+        );
 
         equiv_expr
     })
@@ -328,10 +322,12 @@ mod tests {
         assert_eq!(
             parse("!(p => q) == p || !q".to_string()).unwrap(),
             ASTNode::Equivalent(
-                Box::new(ASTNode::Not(Box::new(ASTNode::Paren(Box::new(ASTNode::Implies(
-                    Box::new(ASTNode::Variable('p')),
-                    Box::new(ASTNode::Variable('q'))
-                )))))),
+                Box::new(ASTNode::Not(Box::new(ASTNode::Paren(Box::new(
+                    ASTNode::Implies(
+                        Box::new(ASTNode::Variable('p')),
+                        Box::new(ASTNode::Variable('q'))
+                    )
+                ))))),
                 Box::new(ASTNode::Or(
                     Box::new(ASTNode::Variable('p')),
                     Box::new(ASTNode::Not(Box::new(ASTNode::Variable('q'))))
@@ -352,7 +348,9 @@ mod tests {
     fn test_multiple_not_operators() {
         assert_eq!(
             parse("!!!x".to_string()).unwrap(),
-            ASTNode::Not(Box::new(ASTNode::Not(Box::new(ASTNode::Not(Box::new(ASTNode::Variable('x')))))))
+            ASTNode::Not(Box::new(ASTNode::Not(Box::new(ASTNode::Not(Box::new(
+                ASTNode::Variable('x')
+            ))))))
         );
     }
 
@@ -425,26 +423,17 @@ mod tests {
 
     #[test]
     fn test_single_variable() {
-        assert_eq!(
-            parse("x".to_string()).unwrap(),
-            ASTNode::Variable('x')
-        );
+        assert_eq!(parse("x".to_string()).unwrap(), ASTNode::Variable('x'));
     }
 
     #[test]
     fn test_single_literal_true() {
-        assert_eq!(
-            parse("true".to_string()).unwrap(),
-            ASTNode::Literal(true)
-        );
+        assert_eq!(parse("true".to_string()).unwrap(), ASTNode::Literal(true));
     }
 
     #[test]
     fn test_single_literal_false() {
-        assert_eq!(
-            parse("false".to_string()).unwrap(),
-            ASTNode::Literal(false)
-        );
+        assert_eq!(parse("false".to_string()).unwrap(), ASTNode::Literal(false));
     }
 
     #[test]
