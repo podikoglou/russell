@@ -112,6 +112,23 @@ impl Engine {
 
         Ok(true)
     }
+    pub fn check_contradiction(&self, expr: ASTNode) -> anyhow::Result<bool> {
+        let variables: Vec<char> = self.collect_variables(&expr);
+        let assignments = self.compute_assignments(variables);
+
+        for assignments in assignments {
+            // NOTE: cloning -- bad
+            if self.eval(expr.clone(), &assignments)? {
+                return Ok(false);
+            }
+        }
+
+        Ok(true)
+    }
+
+    pub fn check_contingency(&self, expr: ASTNode) -> anyhow::Result<bool> {
+        Ok(!self.check_tautology(expr.clone())? && !self.check_contradiction(expr)?)
+    }
 }
 
 #[cfg(test)]
