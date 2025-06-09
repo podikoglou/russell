@@ -50,4 +50,28 @@ impl WasmEngine {
             .check_tautology(parsed)
             .map_err(|e| format!("{:?}", e))
     }
+
+    #[wasm_bindgen]
+    pub fn check_contradiction(&mut self, input: &str) -> Result<bool, String> {
+        let parsed = self
+            .inner
+            .parse(input.to_string())
+            .map_err(|e| format!("{:?}", e))?;
+
+        self.inner
+            .check_contradiction(parsed)
+            .map_err(|e| format!("{:?}", e))
+    }
+
+    #[wasm_bindgen]
+    pub fn check_contingency(&mut self, input: &str) -> Result<bool, String> {
+        let parsed = self
+            .inner
+            .parse(input.to_string())
+            .map_err(|e| format!("{:?}", e))?;
+
+        self.inner
+            .check_contingency(parsed)
+            .map_err(|e| format!("{:?}", e))
+    }
 }
