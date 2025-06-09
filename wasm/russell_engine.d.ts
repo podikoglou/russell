@@ -6,6 +6,8 @@ export class WasmEngine {
   constructor();
   eval(input: string, assignments: any): boolean;
   check_tautology(input: string): boolean;
+  check_contradiction(input: string): boolean;
+  check_contingency(input: string): boolean;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -16,6 +18,8 @@ export interface InitOutput {
   readonly wasmengine_new: () => number;
   readonly wasmengine_eval: (a: number, b: number, c: number, d: any) => [number, number, number];
   readonly wasmengine_check_tautology: (a: number, b: number, c: number) => [number, number, number];
+  readonly wasmengine_check_contradiction: (a: number, b: number, c: number) => [number, number, number];
+  readonly wasmengine_check_contingency: (a: number, b: number, c: number) => [number, number, number];
   readonly main: () => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
