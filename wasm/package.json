@@ -1,0 +1,15 @@
+{
+  "name": "russell_engine",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "russell_engine_bg.wasm",
+    "russell_engine.js",
+    "russell_engine.d.ts"
+  ],
+  "main": "russell_engine.js",
+  "types": "russell_engine.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
