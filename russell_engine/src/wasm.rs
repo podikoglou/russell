@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
-use crate::Engine;
-use anyhow::Context;
+use crate::{Assignments, Engine};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
@@ -13,6 +12,12 @@ pub fn main() {
 #[wasm_bindgen]
 pub struct WasmEngine {
     inner: Engine,
+}
+
+#[wasm_bindgen]
+#[derive(Default)]
+pub struct TruthTable {
+    table: HashMap<Assignments, bool>,
 }
 
 #[wasm_bindgen]
@@ -35,7 +40,7 @@ impl WasmEngine {
             .collect::<HashMap<char, bool>>();
 
         self.inner
-            .eval_str(input.to_string(), &assignments_map)
+            .eval_str(input.to_string(), &Assignments(assignments_map))
             .map_err(|e| format!("{:?}", e))
     }
 
@@ -73,5 +78,33 @@ impl WasmEngine {
         self.inner
             .check_contingency(parsed)
             .map_err(|e| format!("{:?}", e))
+    }
+
+    #[wasm_bindgen]
+    pub fn compute_truth_table(&mut self, input: &str) -> Result<TruthTable, String> {
+        let parsed = self
+            .inner
+            .parse(input.to_string())
+            .map_err(|e| format!("{:?}", e))?;
+
+        let variables = self.inner.collect_variables(&parsed);
+
+        // create truth table
+        let mut table: HashMap<Assignments, bool> = HashMap::new();
+
+        let rows = self.inner.compute_assignments(variables);
+
+        for assignments in rows {
+            // evaluate row
+            let result = self
+                .inner
+                .eval(parsed.clone(), &assignments)
+                .map_err(|e| format!("{:?}", e))?;
+
+            // insert result to truth table
+            table.insert(assignments, result);
+        }
+
+        Ok(TruthTable { table })
     }
 }

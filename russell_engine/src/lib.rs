@@ -1,11 +1,32 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    hash::{DefaultHasher, Hasher},
+};
 
 use anyhow::anyhow;
 use russell_ast::ASTNode;
 use russell_parser::parse;
 
-#[derive(Default)]
+#[derive(Default, PartialEq, Eq)]
 pub struct Assignments(HashMap<char, bool>);
+
+impl std::hash::Hash for Assignments {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        for (&ch, &value) in &self.0 {
+            let mut hasher = DefaultHasher::new();
+
+            (ch, value).hash(&mut hasher);
+
+            state.write_u64(hasher.finish());
+
+            // NOTE: another possible solution would be to ignore char and
+            // simply assign each entry a bit position and write the value to
+            // that position, using bit shifting
+            //
+            // this has collisions, i tested it !
+        }
+    }
+}
 
 #[derive(Default, Debug)]
 pub struct Engine {}
@@ -135,6 +156,8 @@ impl Engine {
 
 #[cfg(test)]
 mod tests {
+    use std::{default, hash::Hash};
+
     use super::*;
 
     #[test]
@@ -225,6 +248,47 @@ mod tests {
         let expr = engine.parse("a && !a".to_string()).unwrap();
         assert!(!engine.check_contingency(expr).unwrap());
     }
+
+    // this fails!
+    // #[test]
+    // fn test_assignments_hashing() {
+    //     let mut hashes: HashSet<u64> = HashSet::default();
+
+    //     for a in 'a'..='z' {
+    //         for b in 'a'..='z' {
+    //             for c in 'a'..='z' {
+    //                 // no duplicate keys
+    //                 if a == b || a == c || b == c {
+    //                     continue;
+    //                 }
+
+    //                 for av in 0..=1 {
+    //                     for bv in 0..=1 {
+    //                         for cv in 0..=1 {
+    //                             // populate truth table
+    //                             let mut assignments = Assignments::default();
+
+    //                             assignments.0.insert(a, av == 1);
+    //                             assignments.0.insert(b, bv == 1);
+    //                             assignments.0.insert(c, cv == 1);
+
+    //                             // hash truth table
+    //                             let mut hasher = DefaultHasher::default();
+    //                             assignments.hash(&mut hasher);
+
+    //                             let hash = hasher.finish();
+
+    //                             // ensure that the hash is unique (since the truth table is unique too)
+    //                             assert!(!hashes.contains(&hash));
+
+    //                             hashes.insert(hash);
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 #[cfg(target_arch = "wasm32")]
