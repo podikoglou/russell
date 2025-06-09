@@ -73,35 +73,38 @@ impl WasmEngine {
     #[wasm_bindgen]
     pub fn compute_truth_table(&mut self, input: &str) -> Result<JsValue, String> {
         let expr = self.parse(input)?;
-
         let variables = self.inner.collect_variables(&expr);
-
-        // create truth table as array of objects
-        let mut table: Vec<HashMap<String, bool>> = Vec::new();
-
         let rows = self.inner.compute_assignments(variables);
 
+        let table = js_sys::Array::new();
+
         for assignments in rows {
-            // evaluate row
             let result = self
                 .inner
                 .eval(&expr, &assignments)
                 .map_err(|e| format!("{:?}", e))?;
 
-            // create row object
-            let mut row = HashMap::new();
+            let row = js_sys::Object::new();
 
-            // add variable assignments
             for (var, value) in &assignments.0 {
-                row.insert(var.to_string(), *value);
+                js_sys::Reflect::set(
+                    &row,
+                    &JsValue::from_str(&var.to_string()),
+                    &JsValue::from_bool(*value),
+                )
+                .unwrap();
             }
 
-            // add result
-            row.insert("result".to_string(), result);
+            js_sys::Reflect::set(
+                &row,
+                &JsValue::from_str("result"),
+                &JsValue::from_bool(result),
+            )
+            .unwrap();
 
-            table.push(row);
+            table.push(&row);
         }
 
-        serde_wasm_bindgen::to_value(&table).map_err(|e| format!("{:?}", e))
+        Ok(table.into())
     }
 }
