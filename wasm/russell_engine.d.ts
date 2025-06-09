@@ -5,6 +5,7 @@ export class WasmEngine {
   free(): void;
   constructor();
   eval(input: string, assignments: any): boolean;
+  check_tautology(input: string): boolean;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -14,6 +15,7 @@ export interface InitOutput {
   readonly __wbg_wasmengine_free: (a: number, b: number) => void;
   readonly wasmengine_new: () => number;
   readonly wasmengine_eval: (a: number, b: number, c: number, d: any) => [number, number, number];
+  readonly wasmengine_check_tautology: (a: number, b: number, c: number) => [number, number, number];
   readonly main: () => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
