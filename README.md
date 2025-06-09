@@ -1,7 +1,7 @@
 # russell
 A tiny little Propositional Logic engine, made while I was studying for my
-Logic class. This was written for both educational and recreational, as I
-wanted to see how evaluation of logical expressions is typically done.
+Logic class. This was written for both educational and recreational purposes,
+as I wanted to see how evaluation of logical expressions is typically done.
 
 A few things:
 - russell can "prove" whether a logical proposition is a tautology or not, by
