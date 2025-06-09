@@ -2,8 +2,9 @@ use chumsky::prelude::*;
 use russell_ast::ASTNode;
 
 /// Parses an input into an [ASTNode]
-pub fn parse(input: String) -> anyhow::Result<ASTNode> {
+pub fn parse(input: &str) -> anyhow::Result<ASTNode> {
     let parser = expr_parser();
+
     match parser.parse(input.trim()).into_result() {
         Ok(ast) => Ok(ast),
         Err(errors) => {
@@ -87,33 +88,33 @@ mod tests {
     #[test]
     fn test_variables() {
         for c in 'a'..='z' {
-            assert_eq!(parse(c.to_string()).unwrap(), ASTNode::Variable(c));
+            assert_eq!(parse(c).unwrap(), ASTNode::Variable(c));
         }
     }
 
     #[test]
     fn test_literals() {
-        assert_eq!(parse("true".to_string()).unwrap(), ASTNode::Literal(true));
-        assert_eq!(parse("false".to_string()).unwrap(), ASTNode::Literal(false));
+        assert_eq!(parse("true").unwrap(), ASTNode::Literal(true));
+        assert_eq!(parse("false").unwrap(), ASTNode::Literal(false));
     }
 
     #[test]
     fn test_paren() {
         assert_eq!(
-            parse("(true)".to_string()).unwrap(),
+            parse("(true)").unwrap(),
             ASTNode::Paren(Box::new(ASTNode::Literal(true)))
         );
         assert_eq!(
-            parse("(false)".to_string()).unwrap(),
+            parse("(false)").unwrap(),
             ASTNode::Paren(Box::new(ASTNode::Literal(false)))
         );
 
         assert_eq!(
-            parse("(x)".to_string()).unwrap(),
+            parse("(x)").unwrap(),
             ASTNode::Paren(Box::new(ASTNode::Variable('x')))
         );
         assert_eq!(
-            parse("((x))".to_string()).unwrap(),
+            parse("((x))").unwrap(),
             ASTNode::Paren(Box::new(ASTNode::Paren(Box::new(ASTNode::Variable('x')))))
         );
     }
@@ -121,12 +122,12 @@ mod tests {
     #[test]
     fn test_not() {
         assert_eq!(
-            parse("!x".to_string()).unwrap(),
+            parse("!x").unwrap(),
             ASTNode::Not(Box::new(ASTNode::Variable('x')))
         );
 
         assert_eq!(
-            parse("!!x".to_string()).unwrap(),
+            parse("!!x").unwrap(),
             ASTNode::Not(Box::new(ASTNode::Not(Box::new(ASTNode::Variable('x')))))
         );
     }
@@ -134,7 +135,7 @@ mod tests {
     #[test]
     fn test_and() {
         assert_eq!(
-            parse("x && y".to_string()).unwrap(),
+            parse("x && y").unwrap(),
             ASTNode::And(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Variable('y'))
@@ -142,7 +143,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse("x && (y && z)".to_string()).unwrap(),
+            parse("x && (y && z)").unwrap(),
             ASTNode::And(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Paren(Box::new(ASTNode::And(
@@ -156,7 +157,7 @@ mod tests {
     #[test]
     fn test_or() {
         assert_eq!(
-            parse("x || y".to_string()).unwrap(),
+            parse("x || y").unwrap(),
             ASTNode::Or(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Variable('y'))
@@ -164,7 +165,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse("x || (y || z)".to_string()).unwrap(),
+            parse("x || (y || z)").unwrap(),
             ASTNode::Or(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Paren(Box::new(ASTNode::Or(
@@ -178,7 +179,7 @@ mod tests {
     #[test]
     fn test_implies() {
         assert_eq!(
-            parse("x => y".to_string()).unwrap(),
+            parse("x => y").unwrap(),
             ASTNode::Implies(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Variable('y'))
@@ -186,7 +187,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse("x => (y => z)".to_string()).unwrap(),
+            parse("x => (y => z)").unwrap(),
             ASTNode::Implies(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Paren(Box::new(ASTNode::Implies(
@@ -200,7 +201,7 @@ mod tests {
     #[test]
     fn test_not_has_higher_precedence_than_and() {
         assert_eq!(
-            parse("!p && q".to_string()).unwrap(),
+            parse("!p && q").unwrap(),
             ASTNode::And(
                 Box::new(ASTNode::Not(Box::new(ASTNode::Variable('p')))),
                 Box::new(ASTNode::Variable('q'))
@@ -211,7 +212,7 @@ mod tests {
     #[test]
     fn test_and_has_higher_precedence_than_or() {
         assert_eq!(
-            parse("p || q && r".to_string()).unwrap(),
+            parse("p || q && r").unwrap(),
             ASTNode::Or(
                 Box::new(ASTNode::Variable('p')),
                 Box::new(ASTNode::And(
@@ -225,7 +226,7 @@ mod tests {
     #[test]
     fn test_or_has_higher_precedence_than_implies() {
         assert_eq!(
-            parse("p => q || r".to_string()).unwrap(),
+            parse("p => q || r").unwrap(),
             ASTNode::Implies(
                 Box::new(ASTNode::Variable('p')),
                 Box::new(ASTNode::Or(
@@ -239,7 +240,7 @@ mod tests {
     #[test]
     fn test_parentheses_override_precedence() {
         assert_eq!(
-            parse("(p || q) && r".to_string()).unwrap(),
+            parse("(p || q) && r").unwrap(),
             ASTNode::And(
                 Box::new(ASTNode::Paren(Box::new(ASTNode::Or(
                     Box::new(ASTNode::Variable('p')),
@@ -253,7 +254,7 @@ mod tests {
     #[test]
     fn test_whitespace_handling() {
         assert_eq!(
-            parse("  p   &&   q  ".to_string()).unwrap(),
+            parse("  p   &&   q  ").unwrap(),
             ASTNode::And(
                 Box::new(ASTNode::Variable('p')),
                 Box::new(ASTNode::Variable('q'))
@@ -264,7 +265,7 @@ mod tests {
     #[test]
     fn test_equivalent() {
         assert_eq!(
-            parse("x == y".to_string()).unwrap(),
+            parse("x == y").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Variable('y'))
@@ -272,7 +273,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse("x == (y == z)".to_string()).unwrap(),
+            parse("x == (y == z)").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Variable('x')),
                 Box::new(ASTNode::Paren(Box::new(ASTNode::Equivalent(
@@ -286,7 +287,7 @@ mod tests {
     #[test]
     fn test_implies_has_higher_precedence_than_equivalent() {
         assert_eq!(
-            parse("p => q == r => s".to_string()).unwrap(),
+            parse("p => q == r => s").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Implies(
                     Box::new(ASTNode::Variable('p')),
@@ -303,7 +304,7 @@ mod tests {
     #[test]
     fn test_or_has_higher_precedence_than_equivalent() {
         assert_eq!(
-            parse("p || q == r || s".to_string()).unwrap(),
+            parse("p || q == r || s").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Or(
                     Box::new(ASTNode::Variable('p')),
@@ -320,7 +321,7 @@ mod tests {
     #[test]
     fn test_complex_equivalent_expression() {
         assert_eq!(
-            parse("!(p => q) == p || !q".to_string()).unwrap(),
+            parse("!(p => q) == p || !q").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Not(Box::new(ASTNode::Paren(Box::new(
                     ASTNode::Implies(
@@ -339,7 +340,7 @@ mod tests {
     #[test]
     fn test_nested_parentheses() {
         assert_eq!(
-            parse("((x))".to_string()).unwrap(),
+            parse("((x))").unwrap(),
             ASTNode::Paren(Box::new(ASTNode::Paren(Box::new(ASTNode::Variable('x')))))
         );
     }
@@ -347,7 +348,7 @@ mod tests {
     #[test]
     fn test_multiple_not_operators() {
         assert_eq!(
-            parse("!!!x".to_string()).unwrap(),
+            parse("!!!x").unwrap(),
             ASTNode::Not(Box::new(ASTNode::Not(Box::new(ASTNode::Not(Box::new(
                 ASTNode::Variable('x')
             ))))))
@@ -357,7 +358,7 @@ mod tests {
     #[test]
     fn test_parenthesized_equivalent() {
         assert_eq!(
-            parse("(p == q)".to_string()).unwrap(),
+            parse("(p == q)").unwrap(),
             ASTNode::Paren(Box::new(ASTNode::Equivalent(
                 Box::new(ASTNode::Variable('p')),
                 Box::new(ASTNode::Variable('q'))
@@ -368,7 +369,7 @@ mod tests {
     #[test]
     fn test_and_left_associativity() {
         assert_eq!(
-            parse("p && q && r".to_string()).unwrap(),
+            parse("p && q && r").unwrap(),
             ASTNode::And(
                 Box::new(ASTNode::And(
                     Box::new(ASTNode::Variable('p')),
@@ -382,7 +383,7 @@ mod tests {
     #[test]
     fn test_or_left_associativity() {
         assert_eq!(
-            parse("p || q || r".to_string()).unwrap(),
+            parse("p || q || r").unwrap(),
             ASTNode::Or(
                 Box::new(ASTNode::Or(
                     Box::new(ASTNode::Variable('p')),
@@ -396,7 +397,7 @@ mod tests {
     #[test]
     fn test_implies_right_associativity() {
         assert_eq!(
-            parse("p => q => r".to_string()).unwrap(),
+            parse("p => q => r").unwrap(),
             ASTNode::Implies(
                 Box::new(ASTNode::Variable('p')),
                 Box::new(ASTNode::Implies(
@@ -410,7 +411,7 @@ mod tests {
     #[test]
     fn test_equivalent_left_associativity() {
         assert_eq!(
-            parse("p == q == r".to_string()).unwrap(),
+            parse("p == q == r").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Equivalent(
                     Box::new(ASTNode::Variable('p')),
@@ -423,23 +424,23 @@ mod tests {
 
     #[test]
     fn test_single_variable() {
-        assert_eq!(parse("x".to_string()).unwrap(), ASTNode::Variable('x'));
+        assert_eq!(parse("x").unwrap(), ASTNode::Variable('x'));
     }
 
     #[test]
     fn test_single_literal_true() {
-        assert_eq!(parse("true".to_string()).unwrap(), ASTNode::Literal(true));
+        assert_eq!(parse("true").unwrap(), ASTNode::Literal(true));
     }
 
     #[test]
     fn test_single_literal_false() {
-        assert_eq!(parse("false".to_string()).unwrap(), ASTNode::Literal(false));
+        assert_eq!(parse("false").unwrap(), ASTNode::Literal(false));
     }
 
     #[test]
     fn test_not_with_parentheses() {
         assert_eq!(
-            parse("!(x)".to_string()).unwrap(),
+            parse("!(x)").unwrap(),
             ASTNode::Not(Box::new(ASTNode::Paren(Box::new(ASTNode::Variable('x')))))
         );
     }
@@ -447,7 +448,7 @@ mod tests {
     #[test]
     fn test_equivalent_with_literals() {
         assert_eq!(
-            parse("true == false".to_string()).unwrap(),
+            parse("true == false").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Literal(true)),
                 Box::new(ASTNode::Literal(false))
@@ -458,7 +459,7 @@ mod tests {
     #[test]
     fn test_mixed_operators_precedence() {
         assert_eq!(
-            parse("!p && q || r => s == t".to_string()).unwrap(),
+            parse("!p && q || r => s == t").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Implies(
                     Box::new(ASTNode::Or(
@@ -478,7 +479,7 @@ mod tests {
     #[test]
     fn test_all_operators_with_parentheses() {
         assert_eq!(
-            parse("(p && q) || (r => s) == (t)".to_string()).unwrap(),
+            parse("(p && q) || (r => s) == (t)").unwrap(),
             ASTNode::Equivalent(
                 Box::new(ASTNode::Or(
                     Box::new(ASTNode::Paren(Box::new(ASTNode::And(
