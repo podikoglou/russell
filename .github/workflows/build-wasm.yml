@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     tags: [ 'v*' ]
   pull_request:
-    branches: [ main]
+    branches: [ main ]
 
 env:
   CARGO_TERM_COLOR: always
@@ -13,51 +13,57 @@ env:
 jobs:
   build-wasm:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        targets: wasm32-unknown-unknown
-    
-    - name: Install wasm-pack
-      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-    
-    - name: Cache cargo registry
-      uses: actions/cache@v3
-      with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Cache cargo index
-      uses: actions/cache@v3
-      with:
-        path: ~/.cargo/git
-        key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-    
-    - name: Build WASM package
-      run: |
-        cd russell_engine
-        wasm-pack build --target web --out-dir pkg --release
-    
-    - name: Upload WASM artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: russell-wasm
-        path: russell_engine/pkg/
-    
-    # Only create releases on tags or main branch
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
-        name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Latest Build' }}
-        prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
-        files: |
-          russell_engine/pkg/*
-        body: |
-          Built from commit: ${{ github.sha }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-index-
+
+      - name: Build WASM package
+        run: |
+          cd russell_engine
+          wasm-pack build --target web --out-dir pkg --release
+
+      - name: Upload WASM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: russell-wasm
+          path: russell_engine/pkg/
+          retention-days: 7
+
+          # Only create releases on tags or main branch
+      - name: Create Release
+        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Latest Build' }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          files: |
+            russell_engine/pkg/*
+          body: |
+            Built from commit: ${{ github.sha }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
