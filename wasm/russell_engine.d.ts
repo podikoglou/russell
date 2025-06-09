@@ -1,6 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
 export function main(): void;
+export class TruthTable {
+  private constructor();
+  free(): void;
+}
 export class WasmEngine {
   free(): void;
   constructor();
@@ -8,6 +12,7 @@ export class WasmEngine {
   check_tautology(input: string): boolean;
   check_contradiction(input: string): boolean;
   check_contingency(input: string): boolean;
+  compute_truth_table(input: string): TruthTable;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -15,11 +20,13 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_wasmengine_free: (a: number, b: number) => void;
+  readonly __wbg_truthtable_free: (a: number, b: number) => void;
   readonly wasmengine_new: () => number;
   readonly wasmengine_eval: (a: number, b: number, c: number, d: any) => [number, number, number];
   readonly wasmengine_check_tautology: (a: number, b: number, c: number) => [number, number, number];
   readonly wasmengine_check_contradiction: (a: number, b: number, c: number) => [number, number, number];
   readonly wasmengine_check_contingency: (a: number, b: number, c: number) => [number, number, number];
+  readonly wasmengine_compute_truth_table: (a: number, b: number, c: number) => [number, number, number];
   readonly main: () => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
