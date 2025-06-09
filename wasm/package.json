@@ -1,7 +1,7 @@
 {
   "name": "russell_engine",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "files": [
     "russell_engine_bg.wasm",
     "russell_engine.js",
