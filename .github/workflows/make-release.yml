@@ -21,7 +21,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: release-${{ github.event.workflow_run.head_sha }}
-          name: Release for commit ${{ github.event.workflow_run.head_sha }}
+          name: ${{ github.event.workflow_run.head_sha }}
           draft: false
           prerelease: false
         env:
