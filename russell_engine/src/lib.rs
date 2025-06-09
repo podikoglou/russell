@@ -4,7 +4,8 @@ use anyhow::anyhow;
 use russell_ast::ASTNode;
 use russell_parser::parse;
 
-type Assignments = HashMap<char, bool>;
+#[derive(Default)]
+pub struct Assignments(HashMap<char, bool>);
 
 #[derive(Default, Debug)]
 pub struct Engine {}
@@ -20,7 +21,7 @@ impl Engine {
 
     pub fn eval(&self, expr: ASTNode, assignments: &Assignments) -> anyhow::Result<bool> {
         match expr {
-            ASTNode::Variable(symbol) => match assignments.get(&symbol) {
+            ASTNode::Variable(symbol) => match assignments.0.get(&symbol) {
                 Some(val) => Ok(*val),
                 None => Err(anyhow!("")),
             },
@@ -89,7 +90,7 @@ impl Engine {
                     // by checking if it's 1
                     let value = (i >> pos) & 1 == 1;
 
-                    assignments.insert(*var, value);
+                    assignments.0.insert(*var, value);
 
                     pos += 1
                 }
