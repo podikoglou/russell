@@ -7,3 +7,14 @@ edition = "2024"
 anyhow = "1.0.98"
 russell_ast = { path = "../russell_ast" }
 russell_parser = { path = "../russell_parser" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = "0.3"
+console_error_panic_hook = "0.1"
+serde = "1.0.219"
+serde-wasm-bindgen = "0.6.5"
+
+[lib]
+crate-type = ["lib", "cdylib"]
