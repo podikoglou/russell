@@ -32,11 +32,11 @@ impl std::hash::Hash for Assignments {
 pub struct Engine {}
 
 impl Engine {
-    pub fn parse(&self, input: String) -> anyhow::Result<ASTNode> {
+    pub fn parse(&self, input: &str) -> anyhow::Result<ASTNode> {
         parse(input)
     }
 
-    pub fn eval_str(&self, input: String, assignments: &Assignments) -> anyhow::Result<bool> {
+    pub fn eval_str(&self, input: &str, assignments: &Assignments) -> anyhow::Result<bool> {
         self.eval(self.parse(input)?, assignments)
     }
 
@@ -156,8 +156,6 @@ impl Engine {
 
 #[cfg(test)]
 mod tests {
-    use std::{default, hash::Hash};
-
     use super::*;
 
     #[test]
@@ -166,7 +164,7 @@ mod tests {
 
         let mut actual = engine.collect_variables(
             &engine
-                .parse("(a) && (b && c || ((((((d) || e)))))) => f == g".to_string())
+                .parse("(a) && (b && c || ((((((d) || e)))))) => f == g")
                 .unwrap(),
         );
         actual.sort();
@@ -181,21 +179,19 @@ mod tests {
         let engine = Engine::default();
 
         // a || !a is a tautology
-        let expr = engine.parse("a || !a".to_string()).unwrap();
+        let expr = engine.parse("a || !a").unwrap();
         assert!(engine.check_tautology(expr).unwrap());
 
         // (a => b) => ((!b) => (!a)) is a tautology (contrapositive)
-        let expr = engine
-            .parse("(a => b) => ((!b) => (!a))".to_string())
-            .unwrap();
+        let expr = engine.parse("(a => b) => ((!b) => (!a))").unwrap();
         assert!(engine.check_tautology(expr).unwrap());
 
         // a && !a is not a tautology
-        let expr = engine.parse("a && !a".to_string()).unwrap();
+        let expr = engine.parse("a && !a").unwrap();
         assert!(!engine.check_tautology(expr).unwrap());
 
         // a is not a tautology
-        let expr = engine.parse("a".to_string()).unwrap();
+        let expr = engine.parse("a").unwrap();
         assert!(!engine.check_tautology(expr).unwrap());
     }
 
@@ -204,19 +200,19 @@ mod tests {
         let engine = Engine::default();
 
         // a && !a is a contradiction
-        let expr = engine.parse("a && !a".to_string()).unwrap();
+        let expr = engine.parse("a && !a").unwrap();
         assert!(engine.check_contradiction(expr).unwrap());
 
         // (a && b) && (!a || !b) is a contradiction
-        let expr = engine.parse("(a && b) && (!a || !b)".to_string()).unwrap();
+        let expr = engine.parse("(a && b) && (!a || !b)").unwrap();
         assert!(engine.check_contradiction(expr).unwrap());
 
         // a || !a is not a contradiction
-        let expr = engine.parse("a || !a".to_string()).unwrap();
+        let expr = engine.parse("a || !a").unwrap();
         assert!(!engine.check_contradiction(expr).unwrap());
 
         // a is not a contradiction
-        let expr = engine.parse("a".to_string()).unwrap();
+        let expr = engine.parse("a").unwrap();
         assert!(!engine.check_contradiction(expr).unwrap());
     }
 
@@ -225,27 +221,27 @@ mod tests {
         let engine = Engine::default();
 
         // a is a contingency (neither tautology nor contradiction)
-        let expr = engine.parse("a".to_string()).unwrap();
+        let expr = engine.parse("a").unwrap();
         assert!(engine.check_contingency(expr).unwrap());
 
         // a && b is a contingency
-        let expr = engine.parse("a && b".to_string()).unwrap();
+        let expr = engine.parse("a && b").unwrap();
         assert!(engine.check_contingency(expr).unwrap());
 
         // a || b is a contingency
-        let expr = engine.parse("a || b".to_string()).unwrap();
+        let expr = engine.parse("a || b").unwrap();
         assert!(engine.check_contingency(expr).unwrap());
 
         // a => b is a contingency
-        let expr = engine.parse("a => b".to_string()).unwrap();
+        let expr = engine.parse("a => b").unwrap();
         assert!(engine.check_contingency(expr).unwrap());
 
         // a || !a is not a contingency (it's a tautology)
-        let expr = engine.parse("a || !a".to_string()).unwrap();
+        let expr = engine.parse("a || !a").unwrap();
         assert!(!engine.check_contingency(expr).unwrap());
 
         // a && !a is not a contingency (it's a contradiction)
-        let expr = engine.parse("a && !a".to_string()).unwrap();
+        let expr = engine.parse("a && !a").unwrap();
         assert!(!engine.check_contingency(expr).unwrap());
     }
 
