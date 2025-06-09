@@ -31,9 +31,7 @@ impl WasmEngine {
     }
 
     fn parse(&mut self, input: &str) -> Result<ASTNode, String> {
-        self.inner
-            .parse(input.to_string())
-            .map_err(|e| format!("{:?}", e))
+        self.inner.parse(input).map_err(|e| format!("{:?}", e))
     }
 
     #[wasm_bindgen]
@@ -47,7 +45,7 @@ impl WasmEngine {
             .collect::<HashMap<char, bool>>();
 
         self.inner
-            .eval_str(input.to_string(), &Assignments(assignments_map))
+            .eval_str(input, &Assignments(assignments_map))
             .map_err(|e| format!("{:?}", e))
     }
 
@@ -56,7 +54,7 @@ impl WasmEngine {
         let expr = self.parse(input)?;
 
         self.inner
-            .check_tautology(expr)
+            .check_tautology(&expr)
             .map_err(|e| format!("{:?}", e))
     }
 
@@ -65,7 +63,7 @@ impl WasmEngine {
         let expr = self.parse(input)?;
 
         self.inner
-            .check_contradiction(expr)
+            .check_contradiction(&expr)
             .map_err(|e| format!("{:?}", e))
     }
 
@@ -74,7 +72,7 @@ impl WasmEngine {
         let expr = self.parse(input)?;
 
         self.inner
-            .check_contingency(expr)
+            .check_contingency(&expr)
             .map_err(|e| format!("{:?}", e))
     }
 
@@ -93,7 +91,7 @@ impl WasmEngine {
             // evaluate row
             let result = self
                 .inner
-                .eval(expr.clone(), &assignments)
+                .eval(&expr, &assignments)
                 .map_err(|e| format!("{:?}", e))?;
 
             // insert result to truth table
